@@ -15,19 +15,19 @@
         // get otp from $_post
         $postOtp = $_POST["otp"];
 
-        var_dump($otpSess);
-        echo "<br> $postOtp";
+        // var_dump($otpSess);
+        // echo "<br> $postOtp";
 
 
         if ($otp == $postOtp) {
             $users->authChange = true;
         } else {
             $users->error = "The OTP code is wrong, please try again 2";
-            echo $users->error;
+            // echo $users->error;
         }
     } else {
         $users->error = "The OTP code is wrong, please try again 1";
-        echo $users->error;
+        // echo $users->error;
     }
 ?>
 

@@ -10,7 +10,7 @@ if ((!empty($_SERVER["SERVER_NAME"]) && $_SERVER["SERVER_NAME"] == "localhost"))
     define("DDRIVER", "");
 
     // This is the ROOT_URL config
-    $url = "http://localhost/$folder/public";
+    $url = "http://localhost/$foldername/public";
     define("ROOT_URL", $url);
 } else {
     define("DBNAME", "");
