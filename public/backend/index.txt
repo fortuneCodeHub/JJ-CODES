@@ -1,0 +1,184 @@
+<?php 
+    // Path to this file
+    // define("BACKROOTPATH", __DIR__. DIRECTORY_SEPARATOR);
+    session_start();
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AJAX CRUD - Backend</title>
+
+    <!-- Bootstrap css -->
+    <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+
+    <style>
+        /* body {
+            display: flex;
+            flex-direction: column;
+        } */
+    </style>
+</head>
+<body>
+    <?php 
+        // require_once "../../app/config/function.php";
+        require_once "../../app/Database/DatabaseHandler.php";
+        
+        require_once __DIR__."/../../vendor/autoload.php";
+        require_once __DIR__."/../../app/config/config.php";
+        require_once __DIR__."/../../app/config/function.php";
+
+        $products = new Data();
+        $products->dbname = "php_ajaxCRUD";
+        $products->table = "products";
+
+        // 
+        $product_name=$price=$stock=$product_id=$flag="";
+
+        // Set data array
+        $data = [];
+
+        if (isset($_REQUEST["flag"]) && $_REQUEST["flag"] == "edit") {
+            if (isset($_REQUEST["id"])) {
+                $data["id"] = $_REQUEST["id"];
+                $product = $products->where($data);
+
+                if ($product != false) {
+                    // Assign values for the form
+                    $product_name = $product["product_name"];
+                    $price = $product["price"];
+                    $stock = $product["stock"];
+                    $product_id = $product["id"];
+
+                    // assign action to flag variable
+                    $flag = $_REQUEST["flag"];
+
+                    unset($_SESSION["noProExist"]);
+                } else {
+                    $_SESSION["noProExist"] = 1;
+                    header("Location: index.php");
+                }
+            }
+        }else {
+            $products = $products->selectAll();
+        }
+
+        $noProExist = (isset($_SESSION["noProExist"])) ? "This product does not exist" : "";
+
+    ?>
+    <div class="tb-container row">
+        <div class="table-contain col-xl-6">
+            <div id="showMsg" style="position: absolute;top: 5%;left:0;right:0;"></div>
+            <table class="table table-bordered text-white" id="products">
+                <thead>
+                    <tr class="text-center">
+                        <th># ID</th>
+                        <th>Product Name</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if(!$products == false && is_array($products)) {?>
+                        <?php foreach($products as $i => $product):?>
+                            <tr>
+                                <td><?=$i+=1?></td>
+                                <td><?=$product["product_name"]?></td>
+                                <td><?=$product["price"]?></td>
+                                <td><?=$product["stock"]?></td>
+                                <td><?=getDateInWords($product["date_created"])?></td>
+                                <td class="action">
+                                    <a href="index.php?id=<?=$product["id"]?>&flag=edit" class="btn btn-outline-success my-1" title="Edit">Edit</a>
+                                    <a href="javascript:void(0)" type="button" class="btn btn-outline-danger my-1" title="Delete" onclick="delProduct('<?=$product['product_name']?>', '<?=$product['id']?>')">Delete</a>
+                                </td> 
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php } elseif(!$product == false && is_array($product)) {?>
+                        <?php $i = 0 ?>
+                        <tr>
+                            <td><?=$i+=1?></td>
+                            <td><?=$product_name?></td>
+                            <td><?=$price?></td>
+                            <td><?=$stock?></td>
+                            <td><?=getDateInWords($product["date_created"])?></td>
+                            <td class="action">
+                                <a href="javascript:void(0)" type="button" class="btn btn-outline-danger my-1" title="Delete" onclick="delProduct('<?=$product['product_name']?>', '<?=$product['id']?>')">Delete</a>
+                            </td>
+                        </tr>
+                    <?php } ?>
+                </tbody>
+            </table>
+            <?php if (empty($products)): ?>
+                <div class="text-center p-3 bg-white text-black">No Items Found</div>
+            <?php endif; ?>
+        </div>
+        <div class="col-xl-6 order-xl-last order-first pb-xl-0 pb-5 mb-xl-0 mb-5">
+            <?php if($flag == "edit") {?>
+                <h2 class="fw-bold">Edit <?=$product_name?> Product</h2>
+                <form class="product-form" id="post-form">
+                    <input type="hidden" id="product_id" name="product_id" value="<?=$product_id?>">
+                    <div class="form-group d-flex flex-column">
+                        <label for="product">Product Name</label>
+                        <input type="text" id="product-name" name="product_name" value="<?=$product_name?>">
+                        <div style="color:red;" id="productErr"></div>
+                    </div>
+                    <div class="form-group d-flex flex-column">
+                        <label for="price">Price</label>
+                        <input type="number" id="price" name="price" placeholder="$0.00" value="<?=$price?>">
+                        <div style="color:red;" id="priceErr"></div>
+                    </div>
+                    <div class="form-group d-flex flex-column">
+                        <label for="stock">Stock</label>
+                        <input type="number" id="stock" name="stock" placeholder="0" value="<?=$stock?>">
+                        <div style="color:red;" id="stockErr"></div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-start">
+                        <a href="index.php" class="btn btn-danger shadow mt-2 me-1">Cancel</a>
+                        <input class="btn btn-primary shadow mt-2 me-1" id="update" name="update" type="button" value="Save Changes">
+                    </div>
+                </form>
+            <?php } else { ?>
+                <h2 class="fw-bold">Post A Product</h2>
+                <form class="product-form" id="post-form">
+                    <div class="form-group d-flex flex-column">
+                        <label for="product">Product Name</label>
+                        <input type="text" id="product-name" name="product_name">
+                        <div style="color:red;" id="productErr"></div>
+                    </div>
+                    <div class="form-group d-flex flex-column">
+                        <label for="price">Price</label>
+                        <input type="number" id="price" name="price" placeholder="$0.00">
+                        <div style="color:red;" id="priceErr"></div>
+                    </div>
+                    <div class="form-group d-flex flex-column">
+                        <label for="stock">Stock</label>
+                        <input type="number" id="stock" name="stock" placeholder="0">
+                        <div style="color:red;" id="stockErr"></div>
+                    </div>
+                    <input class="btn btn-primary shadow mt-2" id="submit" name="submit" type="button" value="Submit">
+                </form>
+            <?php }?>
+        </div>
+    </div>
+    
+    <!-- Bootstap Js -->
+    <script src="../js/bootstrap.min.js"></script>
+    <!-- Jquery lib -->
+    <script src="../js/jquery-3.7.1.min.js"></script>
+    <!-- Custom Js -->
+    <script src="../js/crud.js"></script>
+
+    <script>
+        <?php if(!empty($noProExist)): ?>
+            $("#showMsg").html(
+                "<div class='alert alert-success alert-dismissible fade show' role='alert'><?=$noProExist?><button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button></div>"
+            )
+        <?php endif;?>
+    </script>
+</body>
+</html>

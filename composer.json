@@ -1,0 +1,15 @@
+{
+    "name": "fortune/jj-comz",
+    "autoload": {
+        "psr-4": {
+            "app\\": "app/"
+        }
+    },
+    "authors": [
+        {
+            "name": "fortuneCodeHub",
+            "email": "fortunenwohiri@gmail.com"
+        }
+    ],
+    "require": {}
+}
