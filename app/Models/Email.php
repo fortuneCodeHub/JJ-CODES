@@ -43,7 +43,7 @@ class Email
         $mail->Host       = "smtp.gmail.com";
         //$mail->Host       = "smtp.mail.yahoo.com";
         $mail->Username   = "fortunenwohiri@gmail.com";
-        $mail->Password   = "shniuldirtnhtyai";
+        $mail->Password   = "vsgfqaqgdkdejpen";
         
         $mail->IsHTML(true);
         $mail->AddAddress($recipient, "recipient-name");
